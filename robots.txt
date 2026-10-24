@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://kholoane247.github.io/LITENET/sitemap.xml

@@ -2,17 +2,15 @@
   "id": "./",
   "name": "LITENET",
   "short_name": "LITENET",
-  "description": "LITENET — gestão empresarial, parceiros, pagamentos, jogos, vídeo e muito mais, num só lugar.",
+  "description": "LITENET",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
-  "orientation": "any",
-  "background_color": "#060e1a",
-  "theme_color": "#060e1a",
+  "background_color": "#030405",
+  "theme_color": "#030405",
   "lang": "pt",
-  "categories": ["business", "finance", "productivity"],
   "icons": [
-    {"src": "icons/litenet-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+    {"src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
   ]
 }

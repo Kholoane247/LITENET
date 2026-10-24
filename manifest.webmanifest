@@ -7,10 +7,8 @@
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#02060b",
-  "theme_color": "#06101b",
+  "background_color": "#030912",
+  "theme_color": "#163b5b",
   "lang": "pt",
-  "icons": [
-    {"src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
-  ]
+  "icons": [{"src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}]
 }

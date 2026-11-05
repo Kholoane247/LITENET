@@ -2,16 +2,23 @@
   "id": "./",
   "name": "LITENET",
   "short_name": "LITENET",
-  "description": "LITENET",
+  "description": "LITENET — gestão empresarial, parceiros, pagamentos, jogos, vídeo e muito mais, num só lugar.",
+  "lang": "pt",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
   "background_color": "#060e1a",
   "theme_color": "#060e1a",
-  "lang": "pt",
   "icons": [
-    {"src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "LITENET Gestão", "short_name": "Gestão", "url": "./?open=gestao", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "LITEPAY", "short_name": "LitePay", "url": "./?open=pay", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "LITE-GAMES", "short_name": "Jogos", "url": "./?open=games", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "LITECHAT", "short_name": "Chat", "url": "./?open=chat", "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] }
   ]
 }

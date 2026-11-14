@@ -5351,7 +5351,7 @@ const SnakeM={
       '<div class="sm-how"><div><b>Recolha MT</b><span>Esferas maiores valem mais.</span></div><div><b>Saia quando quiser</b><span>Leva o que recolheu.</span></div><div><b>Elimine rivais</b><span>Fica com o valor deles.</span></div><div><b>Evite a parede</b><span>Perde tudo ao tocar.</span></div></div>'+
       '<div class="sm-lbl">Escolha a sua entrada</div><div id="sm-pick">'+this.picker()+"</div>"+
       '<div class="sm-cta"><button id="sm-go-real" class="arena-btn" onclick="SnakeM.enter(true)">Entrar com '+MT(this.sel.stake)+'</button><button class="arena-btn arena-btn-ghost" onclick="SnakeM.enter(false)">Treino grátis</button></div>'+
-      '<div class="sm-live"><div class="sm-lbl">Recorde ao vivo · jogadores reais</div><ol id="sm-live-l"></ol></div><div class="sm-foot">Levantamento para M-Pesa ou e-Mola: mínimo 250 MT.</div></div>';
+      '<div class="sm-live"><div class="sm-lbl">Recorde ao vivo</div><ol id="sm-live-l"></ol></div><div class="sm-foot">Levantamento para M-Pesa ou e-Mola: mínimo 250 MT.</div></div>';
   },
   shell(){
     this.stopLoop();this.unbind();
@@ -5808,7 +5808,7 @@ const SnakeM={
   },
   drawLive(id,rows){
     const e=$(id);if(!e)return;
-    e.innerHTML=(rows&&rows.length)?rows.map(x=>'<li class="'+(x.eu?"me":"")+'"><span class="pos">'+x.pos+'</span><span class="nm">'+esc(x.nickname)+"</span><b>"+fmt(x.valor,x.valor>=1000?0:2)+"</b></li>").join(""):'<li style="opacity:.6">Sem jogadores reais agora</li>';
+    e.innerHTML=(rows&&rows.length)?rows.map(x=>'<li class="'+(x.eu?"me":"")+'"><span class="pos">'+x.pos+'</span><span class="nm">'+esc(x.nickname)+"</span><b>"+fmt(x.valor,x.valor>=1000?0:2)+"</b></li>").join(""):'';
   },
   lobbyLive(){
     const go=()=>{if(!$("sm-live-l")){clearInterval(this._li);return}rpc("arena_snake_live_top",{p_limit:5}).then(r=>this.drawLive("sm-live-l",r)).catch(()=>{})};

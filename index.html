@@ -5418,7 +5418,7 @@ const SnakeM={
     };
     this._ku=e=>{if(e.key===" "||e.key==="Shift")this.boost=false;this.keys[e.key]=false};
     addEventListener("keydown",this._kd);addEventListener("keyup",this._ku);
-    const ex=$("sm-exit");if(ex)ex.onclick=()=>this.askExit();
+    const ex=$("sm-exit");if(ex)ex.onclick=()=>this.leave();
     if(this.mobile){
       const j=$("sm-joy"),k=$("sm-knob"),bt=$("sm-boost");let act=null;
       const jv=e=>{const r=j.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const d=Math.hypot(dx,dy),mx=r.width/2;if(d>mx){dx*=mx/d;dy*=mx/d}k.style.transform="translate("+dx+"px,"+dy+"px)";if(d>8)I.a=Math.atan2(dy,dx)};
@@ -5506,8 +5506,7 @@ const SnakeM={
   /* tamanho depende do dinheiro: quanto mais MT, mais larga e mais comprida (cobra gorda) */
   sizeOf(V){
     V=Math.max(1,V);const q=Math.sqrt(V);
-    const r=clamp(9+q*3.4,10,78),px=clamp(260+q*120,300,5200);
-    return{r:r,len:Math.round(clamp(px/(r*.7),16,480))};
+    return{r:clamp(9+q*.55,9,22),len:Math.round(clamp(14+q*2.2,12,60))};
   },
   growTo(s){
     const V=s.stake+Math.max(0,s.col_)+(s.isP?Math.max(0,this.kv||0):0),z=this.sizeOf(V);
@@ -5865,7 +5864,7 @@ const SnakeM={
   },
   draw(f){
     const ctx=this.ctx,p=this.p,h=p.seg[0],dpr=this.dpr;
-    const view=(this.mobile?620:860)+Math.min(1400,p.seg.length*3+p.r*14);
+    const view=(this.mobile?620:860)+Math.min(1000,p.seg.length*4.5);
     const tz=clamp(Math.min(this.cw,this.ch)/view,.3,1.2);
     this.cam.z+=(tz-this.cam.z)*.05;
     this.cam.x+=(h.x-this.cam.x)*.18;this.cam.y+=(h.y-this.cam.y)*.18;

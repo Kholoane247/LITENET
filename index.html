@@ -5386,7 +5386,7 @@ const SnakeM={
       '<div id="sm-pop"></div><div id="sm-dlg" class="sm-ov" hidden></div><div id="sm-ov" class="sm-ov" hidden></div></div>';
     this.cv=$("sm-cv");this.ctx=this.cv.getContext("2d",{alpha:false});
     this.stake=this.sel.stake;this.tier=this.tierOf(this.stake);
-    this.GW=Math.ceil(this.W/this.CELL)+1;this.og=Array.from({length:this.GW*this.GW},()=>[]);this.orbN=0;this.run=[];
+    this.GW=Math.ceil(this.W/this.CELL)+1;this.og=Array.from({length:this.GW*this.GW},()=>[]);this.orbN=0;this.run=[];this.loot=[];
     this.snakes=[];this.fx=[];this.names=this.mkNames();this.feed=[];this.hunted=false;this.heat=0;this.hunters=0;this.maxHunt=0;this.churnT=rnd(6,12);
     this.t0=performance.now();this.time=0;this.kills=0;this.kv=0;this.over=false;this.lbT=0;this.boost=false;this.paused=false;
     this.input={a:null};this.keys={};
@@ -5487,27 +5487,33 @@ const SnakeM={
     else{
       let tries=0;
       do{
-        if(this.p&&Math.random()<.7){const pa=rnd(0,6.283),pr=rnd(1000,2300),ph=this.p.seg[0];x=clamp(ph.x+Math.cos(pa)*pr,300,this.W-300);y=clamp(ph.y+Math.sin(pa)*pr,300,this.H-300)}
+        if(this.p&&Math.random()<.7){const pa=rnd(0,6.283),pr=rnd(700,1700),ph=this.p.seg[0];x=clamp(ph.x+Math.cos(pa)*pr,300,this.W-300);y=clamp(ph.y+Math.sin(pa)*pr,300,this.H-300)}
         else{x=rnd(300,this.W-300);y=rnd(300,this.H-300)}
         tries++;
-      }while(this.p&&Math.hypot(x-this.p.seg[0].x,y-this.p.seg[0].y)<900&&tries<30)
+      }while(this.p&&Math.hypot(x-this.p.seg[0].x,y-this.p.seg[0].y)<600&&tries<30)
     }
-    const ang=rnd(0,Math.PI*2),len=bt.len+(isP?0:Math.floor(rnd(0,10))),r=bt.r;
-    const ag=Math.random(),aggr=ag<.15?rnd(.4,.6):ag<.6?rnd(.6,.85):rnd(.85,1);
+    const ang=rnd(0,Math.PI*2),zz=this.sizeOf(bs),len=zz.len,r=zz.r;
+    const ag=Math.random(),aggr=ag<.1?rnd(.7,.8):ag<.5?rnd(.8,.92):rnd(.92,1);
     const s={isP,name:isP?(Arena.player&&Arena.player.nickname||"Você"):this.takeName(),
       col:isP?"#4cc9ff":pick(this.COLS),ang,tang:ang,len,r,base:r,stake:bs,col_:isP?0:rnd(0,bs*.04),seg:[],alive:true,sp:3,think:rnd(0,10),bt:bt,
       shield:isP?0:(Math.random()<.3?6:0),helmet:!isP&&Math.random()<.25,flag:!isP&&Math.random()<.2,laserT:0,prot:2.5,cutCd:0,
       aggr,sk:rnd(.45,1),greed:rnd(.5,1.2),side:Math.random()<.5?-1:1,tgt:null,tgtT:0,wander:0,cutT:0,cutAng:0,mode:"forage",boostNow:false,rage:0};
     const sp=r*.7;for(let i=0;i<len;i++)s.seg.push({x:x-Math.cos(ang)*sp*i,y:y-Math.sin(ang)*sp*i});
-    if(!isP)this.growTo(s);
+    this.growTo(s);{const g=s.r*.7,hx=s.seg[0].x,hy=s.seg[0].y;for(let i=0;i<s.seg.length;i++){s.seg[i].x=hx-Math.cos(ang)*g*i;s.seg[i].y=hy-Math.sin(ang)*g*i}}
     return s;
   },
   val(s){return s.stake+s.col_},
+  /* tamanho depende do dinheiro: quanto mais MT, mais larga e mais comprida (cobra gorda) */
+  sizeOf(V){
+    V=Math.max(1,V);const q=Math.sqrt(V);
+    const r=clamp(9+q*3.4,10,78),px=clamp(260+q*120,300,5200);
+    return{r:r,len:Math.round(clamp(px/(r*.7),16,480))};
+  },
   growTo(s){
-    const target=s.bt.len+Math.floor(Math.sqrt(Math.max(0,s.col_))*7);
-    s.r=s.base+Math.min(9,Math.sqrt(Math.max(0,s.col_))*.55);
+    const V=s.stake+Math.max(0,s.col_)+(s.isP?Math.max(0,this.kv||0):0),z=this.sizeOf(V);
+    s.r=z.r;
     const sp=s.r*.7;
-    while(s.seg.length<target){const t=s.seg[s.seg.length-1];s.seg.push({x:t.x,y:t.y})}
+    while(s.seg.length<z.len){const t=s.seg[s.seg.length-1];s.seg.push({x:t.x,y:t.y})}
     s.sp=sp;
   },
   turn(a,t,m){let d=t-a;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;return a+clamp(d,-m,m)},
@@ -5526,7 +5532,7 @@ const SnakeM={
     const h=s.seg[0],sk=s.sk,W=this.W,H=this.H,myv=this.val(s);
     s.think=rnd(5,12)/(.55+sk*.6);
     s.boostNow=false;
-    if(s.cutT>0){s.cutT--;s.tang=s.cutAng;s.boostNow=s.col_>.15&&s.cutT>1;s.think=rnd(3,5);return}
+    if(s.cutT>0){s.cutT--;s.tang=s.cutAng;s.boostNow=s.cutT>1;s.think=rnd(3,5);return}
     if(s.wander>0){s.wander--;s.tang+=rnd(-.25,.25);return}
     if(Math.random()<.025*(1.1-sk)){s.wander=Math.floor(rnd(2,5));s.tang=s.ang+rnd(-1.2,1.2);return}
     const marg=300;let wx=0,wy=0;
@@ -5541,7 +5547,7 @@ const SnakeM={
       if(Math.abs(oh.x-h.x)>1000||Math.abs(oh.y-h.y)>1000)continue;
       const isT=(o===s.tgt),step=o.seg.length>40?3:2;let dm=0,tx2=0,ty2=0;
       for(let i=0;i<o.seg.length;i+=step){
-        const q=o.seg[i],d=Math.hypot(q.x-fx,q.y-fy),lim=s.r+o.r+55+sk*40;
+        const q=o.seg[i],d=Math.hypot(q.x-fx,q.y-fy),lim=s.r+o.r+42+sk*30;
         if(d<lim){
           const w=(1-d/lim);
           if(isT){if(w>dm){dm=w;tx2=(fx-q.x)/(d+1);ty2=(fy-q.y)/(d+1)}}
@@ -5550,44 +5556,46 @@ const SnakeM={
       }
       if(isT&&dm>0){const k=dm*(s.aggr>.5?.3:.6);ax+=tx2*k;ay+=ty2*k;danger+=k}
       const hd=Math.hypot(oh.x-h.x,oh.y-h.y);
-      if(hd<260&&o!==s.tgt&&this.val(o)+(o.isP?this.kv:0)>myv){
+      if(s.aggr<.85&&hd<200&&o!==s.tgt&&this.val(o)+(o.isP?this.kv:0)>myv){
         const px=oh.x+Math.cos(o.ang)*90,py=oh.y+Math.sin(o.ang)*90,d2=Math.hypot(px-h.x,py-h.y);
         if(d2<200){ax+=(h.x-px)/(d2+1);ay+=(h.y-py)/(d2+1);danger+=.8}
       }
     }
     if(Math.random()<.1*(1-sk))danger*=.4;
-    if(danger>.35){s.mode="flee";s.tang=Math.atan2(ay+wy*.6,ax+wx*.6);s.boostNow=danger>1.1&&s.col_>.2;return}
+    /* lootiro: dinheiro solto na arena atrai todos, e é uma corrida */
+    {let bl=null,bsc=0;for(const l of this.loot){const dx=l.x-h.x,dy=l.y-h.y;if(Math.abs(dx)>900||Math.abs(dy)>900)continue;const d=Math.hypot(dx,dy),sc=(l.v*30+8)/(d+60);if(sc>bsc){bsc=sc;bl=l}}
+      if(bl&&bsc>.05&&danger<.6&&Math.random()<.85){s.mode="loot";s.tang=Math.atan2(bl.y-h.y,bl.x-h.x)+rnd(-.05,.05);s.boostNow=Math.hypot(bl.x-h.x,bl.y-h.y)<650;s.think=rnd(2,4);return}}
+    if(danger>.4+s.aggr*.45){s.mode="flee";s.tang=Math.atan2(ay+wy*.6,ax+wx*.6);s.boostNow=danger>1.6&&s.col_>.2;return}
     /* alvo: caçar jogador (depois dos 5 MT) ou outros robôs */
     let t=s.tgt;
-    if(t&&(!t.alive||s.tgtT<=0||Math.hypot(t.seg[0].x-h.x,t.seg[0].y-h.y)>1500))t=s.tgt=null;
+    if(t&&(!t.alive||s.tgtT<=0||Math.hypot(t.seg[0].x-h.x,t.seg[0].y-h.y)>(t.isP?2600:1600)))t=s.tgt=null;
     s.tgtT--;
     if(!t){
       let best=null,bsC=0;
       for(const o of this.snakes){
         if(o===s||!o.alive)continue;
         const oh=o.seg[0],d=Math.hypot(oh.x-h.x,oh.y-h.y);
-        if(d>1500)continue;
+        if(d>(o.isP?2400:1500))continue;
         const ov=this.val(o)+(o.isP?this.kv:0),ratio=myv/Math.max(1,ov);
         let want=0;
-        if(o.isP){if(this.hunters<this.maxHunt)want=(.5+s.aggr*.5)*(.6+this.heat*.6)*(d<520?1.4:1)}
-        else if(ratio>.6)want=(.3+s.aggr*.5)*(1-d/1500);
-        else if(ratio>.35&&s.aggr>.6)want=.2*(1-d/1500);
+        if(o.isP){if(this.hunters<this.maxHunt)want=(.7+s.aggr*.5)*(.7+this.heat*.6)*(d<700?1.5:1)}
+        else want=(.35+s.aggr*.5)*(1-d/1500)*(ratio>.3?1:.6);
         want*=Math.random();
         if(want>bsC){bsC=want;best=o}
       }
-      if(best&&bsC>.15){t=s.tgt=best;s.tgtT=Math.floor(rnd(14,34));s.side=Math.random()<.5?-1:1}
+      if(best&&bsC>.1){t=s.tgt=best;s.tgtT=Math.floor(rnd(24,50));s.side=Math.random()<.5?-1:1}
     }
     if(t){
       s.mode="hunt";
       const th=t.seg[0],d=Math.hypot(th.x-h.x,th.y-h.y),ta=t.ang;
       const tv=this.val(t)+(t.isP?this.kv:0),ratio=myv/Math.max(1,tv);
       const rel=this.angd(Math.atan2(h.y-th.y,h.x-th.x),ta),ahead=Math.abs(rel)<1.0;
-      if(s.aggr>.4&&ahead&&d<440&&d>110&&Math.random()<.65){
-        s.cutT=Math.floor(rnd(5,9));s.cutAng=ta+s.side*(Math.PI/2)+rnd(-.2,.2);s.think=rnd(3,5);s.boostNow=s.col_>.15;return;
+      if(ahead&&d<560&&d>110&&Math.random()<.7){
+        s.cutT=Math.floor(rnd(6,11));s.cutAng=ta+s.side*(Math.PI/2)+rnd(-.2,.2);s.think=rnd(3,5);s.boostNow=true;return;
       }
       const lead=clamp(d/2.4,0,46),ix=th.x+Math.cos(ta)*3*lead*1.3,iy=th.y+Math.sin(ta)*3*lead*1.3;
       s.tang=Math.atan2(iy-h.y,ix-h.x)+s.side*clamp(d/900,0,1)*.25+rnd(-.1,.1)*(1.15-sk);
-      s.boostNow=ratio>.7&&d<700&&d>130&&s.col_>.15;
+      s.boostNow=d<900&&d>120;
       return;
     }
     s.mode="forage";
@@ -5601,9 +5609,9 @@ const SnakeM={
   /* ---------- clima da arena: calma até 5 MT, depois a caçada ---------- */
   updHeat(sec){
     const p=this.p,acc=p.col_+this.kv;
-    if(!this.hunted&&acc>=2){this.hunted=true;this.huntT=this.time;this.banner("A caçada começou","Os rivais detetaram-no. Ninguém é de confiança.")}
-    this.heat=this.hunted?clamp((acc-2)/20,0,1):0;
-    this.maxHunt=this.hunted?clamp(3+Math.floor(acc/2),3,14):0;
+    if(!this.hunted){this.hunted=true;this.huntT=this.time;this.banner("Jogo agressivo","Todos querem derrubá-lo. Quem cai larga o dinheiro na arena — apanhe-o antes dos outros!")}
+    this.heat=clamp(.6+acc/25,.6,1);
+    this.maxHunt=clamp(9+Math.floor(acc/2),9,20);
     let n=0;for(const s of this.snakes)if(s.bot!==false&&!s.isP&&s.alive&&s.tgt===p)n++;
     this.hunters=n;
     this.churnT-=sec;
@@ -5652,6 +5660,40 @@ const SnakeM={
       }
     }
   },
+  /* dinheiro que cai quando uma cobra é derrubada: espalha-se pela arena e desaparece se ninguém o apanhar */
+  dropLoot(pts,V){
+    V=Math.round(V*100)/100;if(!(V>0)||!pts||!pts.length)return;
+    const n=clamp(Math.round(Math.sqrt(V)*2.2+6),6,34);
+    const ws=[];let sw=0;for(let i=0;i<n;i++){const w=rnd(.4,1.6);ws.push(w);sw+=w}
+    for(let i=0;i<n;i++){
+      const q=pts[Math.min(pts.length-1,Math.floor(i*pts.length/n))],v=Math.round(V*ws[i]/sw*100)/100;
+      if(v<=0)continue;
+      const a=rnd(0,6.283),sp=rnd(3,11);
+      this.loot.push({x:clamp(q.x,30,this.W-30),y:clamp(q.y,30,this.H-30),vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,v:v,r:clamp(6+Math.sqrt(v)*2.4,7,22),ttl:this.LOOT_TTL,w:rnd(0,6.283)});
+    }
+    while(this.loot.length>520)this.loot.shift();
+  },
+  LOOT_TTL:22,
+  updLoot(f,sec){
+    for(let i=this.loot.length-1;i>=0;i--){
+      const l=this.loot[i];l.ttl-=sec;
+      if(l.ttl<=0){this.loot.splice(i,1);continue}
+      if(l.vx||l.vy){l.x=clamp(l.x+l.vx*f,30,this.W-30);l.y=clamp(l.y+l.vy*f,30,this.H-30);const d=Math.pow(.9,f);l.vx*=d;l.vy*=d;if(Math.abs(l.vx)+Math.abs(l.vy)<.15)l.vx=l.vy=0}
+    }
+  },
+  eatLoot(s){
+    if(!this.loot.length)return;
+    const h=s.seg[0],reach=s.r+12;
+    for(let i=this.loot.length-1;i>=0;i--){
+      const l=this.loot[i];
+      if(Math.abs(l.x-h.x)>reach+l.r||Math.abs(l.y-h.y)>reach+l.r)continue;
+      if(Math.hypot(l.x-h.x,l.y-h.y)<reach+l.r){
+        this.loot.splice(i,1);
+        if(s.isP){this.kv=Math.round((this.kv+l.v)*100)/100;this.growTo(s);this.pop("+"+fmt(l.v,2)+" MT",l.x,l.y,"#ffd34d",l.v>=1)}
+        else{s.col_+=l.v;this.growTo(s)}
+      }
+    }
+  },
   invuln(s){return s.shield>0||s.prot>0},
   bounce(s){
     s.ang+=Math.PI;s.tang=s.ang;
@@ -5666,13 +5708,13 @@ const SnakeM={
   die(s,by,why){
     if(!s.alive)return;
     s.alive=false;
-    const n=Math.min(40,Math.floor(s.seg.length/2));
-    for(let i=0;i<n;i++){const q=s.seg[Math.floor(i*s.seg.length/n)];this.spawnOrb(q.x+rnd(-12,12),q.y+rnd(-12,12),s.isP?.03:Math.max(.03,Math.min(.12,s.col_/n)))}
+    const worth=this.val(s)+(s.isP?this.kv:0);
+    this.dropLoot(s.seg,worth*(by&&by.isP&&by.flag?1.3:1));
     if(s.isP){this.over=true;this.finish("morte",why);return}
     if(by&&by.isP){
-      const gain=this.val(s)*(by.flag?1.3:1);this.kv+=gain;this.kills++;
-      this.pop("Eliminou "+s.name+"  +"+fmt(gain)+" MT",s.seg[0].x,s.seg[0].y,"#7cf2a8",true);
-      this.feedAdd("Você eliminou "+s.name,"#7cf2a8");
+      this.kills++;
+      this.pop("Derrubou "+s.name+" · "+fmt(worth,2)+" MT no chão!",s.seg[0].x,s.seg[0].y,"#7cf2a8",true);
+      this.feedAdd("Você derrubou "+s.name+" — apanhe o dinheiro!","#7cf2a8");
     }else if(by){this.feedAdd(by.name+" eliminou "+s.name,"#ffb4b4");if(by.aggr!=null)by.rage=0}
     else this.feedAdd(s.name+" bateu na parede","#9fb3d1");
     this.names.unshift(s.name);
@@ -5710,16 +5752,16 @@ const SnakeM={
     this.moveSnake(p,f,canB);
     if(canB){p.col_=Math.max(0,p.col_-.1*dt/1000);p._bd=(p._bd||0)+dt;if(p._bd>600){p._bd=0;const t=p.seg[p.seg.length-1];this.spawnOrb(t.x,t.y,.03)}this.growTo(p)}
     if(p.alive&&p.laserT>0)this.laser(p);
-    this.updRunners(f);
-    this.eat(p);
+    this.updRunners(f);this.updLoot(f,sec);
+    this.eat(p);this.eatLoot(p);
     this.updHeat(sec);
     for(const s of this.snakes){
       if(s===p||!s.alive)continue;
       this.ai(s,f);s.ang=this.turn(s.ang,s.tang,.09*f);
-      const bst=s.boostNow&&s.col_>.15;
+      const bst=s.boostNow&&(s.col_>.15||s.mode==='hunt'||s.mode==='loot'||s.cutT>0);
       this.moveSnake(s,f,bst);
       if(bst){s.col_=Math.max(0,s.col_-.08*sec);s._bd=(s._bd||0)+dt;if(s._bd>800){s._bd=0;const q=s.seg[s.seg.length-1];this.spawnOrb(q.x,q.y,.03)}this.growTo(s)}
-      this.eat(s);
+      this.eat(s);this.eatLoot(s);
     }
     this.collide();
     while(this.orbN<this.orbMax)this.spawnOrb();
@@ -5743,7 +5785,7 @@ const SnakeM={
   cutSnake(o,i,by){
     if(this.invuln(o))return;
     const lost=o.seg.length-i,frac=lost/o.seg.length,lostCol=o.col_*frac,n=Math.min(24,lost);
-    for(let k=0;k<n;k++){const q=o.seg[i+Math.floor(k*lost/n)];this.spawnOrb(q.x,q.y,Math.max(.03,Math.min(.12,(lostCol*.8)/n)))}
+    this.dropLoot(o.seg.slice(i),lostCol*.8);
     o.seg.length=Math.max(1,i);o.col_=Math.max(0,o.col_-lostCol);
     this.fx.push({t:"Laser!",x:o.seg[0].x,y:o.seg[0].y,c:"#ff4d6d",life:40});
     if(o.seg.length<7)this.die(o,by,"laser");
@@ -5823,7 +5865,7 @@ const SnakeM={
   },
   draw(f){
     const ctx=this.ctx,p=this.p,h=p.seg[0],dpr=this.dpr;
-    const view=(this.mobile?620:860)+Math.min(1000,p.seg.length*4.5);
+    const view=(this.mobile?620:860)+Math.min(1400,p.seg.length*3+p.r*14);
     const tz=clamp(Math.min(this.cw,this.ch)/view,.3,1.2);
     this.cam.z+=(tz-this.cam.z)*.05;
     this.cam.x+=(h.x-this.cam.x)*.18;this.cam.y+=(h.y-this.cam.y)*.18;
@@ -5852,6 +5894,15 @@ const SnakeM={
       ctx.globalAlpha=.25;ctx.fillStyle=u.c;ctx.beginPath();ctx.arc(u.x,u.y,rr*1.9,0,6.283);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle=u.c;ctx.beginPath();ctx.arc(u.x,u.y,rr,0,6.283);ctx.fill();
       ctx.fillStyle="rgba(255,255,255,.75)";ctx.beginPath();ctx.arc(u.x-rr*.3,u.y-rr*.3,rr*.28,0,6.283);ctx.fill();
       if(this.cam.z>.45){ctx.fillStyle="#fff";ctx.font="700 11px system-ui";ctx.textAlign="center";ctx.fillText(fmt(u.v,u.v>=1?1:2),u.x,u.y-rr-5)}
+    }
+    for(const l of this.loot){
+      if(l.x<x0-40||l.x>x1+40||l.y<y0-40||l.y>y1+40)continue;
+      const fade=l.ttl<5?(Math.sin(tt*14)>0?1:.35):1,rr=l.r*(1+.08*Math.sin(tt*7+l.w));
+      ctx.globalAlpha=.28*fade;ctx.fillStyle="#ffd34d";ctx.beginPath();ctx.arc(l.x,l.y,rr*1.8,0,6.283);ctx.fill();
+      ctx.globalAlpha=fade;ctx.fillStyle="#ffc400";ctx.beginPath();ctx.arc(l.x,l.y,rr,0,6.283);ctx.fill();
+      ctx.strokeStyle="#fff2a8";ctx.lineWidth=2;ctx.beginPath();ctx.arc(l.x,l.y,rr*.68,0,6.283);ctx.stroke();
+      if(this.cam.z>.4&&l.v>=.2){ctx.fillStyle="#3a2a00";ctx.font="800 "+Math.max(9,Math.round(rr*.8))+"px system-ui";ctx.textAlign="center";ctx.fillText(fmt(l.v,l.v>=10?0:1),l.x,l.y+rr*.28)}
+      ctx.globalAlpha=1;
     }
     const order=this.snakes.filter(s=>s.alive).sort((a,b)=>a.seg.length-b.seg.length);
     for(const s of order){
@@ -5904,7 +5955,7 @@ const SnakeM={
     const acc=this.p.col_+this.kv,secs=Math.floor(this.time),win=motivo==="saida",real=this.real,total=this.stake+acc;
     const head=(payout,err,pend)=>{
       if(win)return '<div class="sm-res win"><small>'+(real?"Saiu com sucesso":"Treino concluído")+"</small><b>"+(real?(pend?"A creditar…":"+"+MT(payout)):MT(total))+"</b><span>"+(real?(pend?"A confirmar com a carteira LitePay.":(payout>0?"Já está na sua carteira LitePay.":(err?esc(err):"Sem valor a creditar."))):"Sem dinheiro real. Entre com valor para levar Meticais.")+"</span></div>";
-      return '<div class="sm-res lose"><small>Eliminado</small><b>'+(real?"-"+MT(total):"Fim do treino")+"</b><span>"+(why==="parede"?"Tocou na parede vermelha.":"Foi eliminado por outra cobra.")+(real?" O valor reverteu para a casa.":"")+"</span></div>";
+      return '<div class="sm-res lose"><small>Eliminado</small><b>'+(real?"-"+MT(total):"Fim do treino")+"</b><span>"+(why==="parede"?"Tocou na parede vermelha.":"Foi eliminado por outra cobra.")+(real?" O seu dinheiro ficou espalhado na arena.":"")+"</span></div>";
     };
     const ov=$("sm-ov");
     if(ov){
@@ -5916,7 +5967,7 @@ const SnakeM={
       const pid=this.pid;this.pid=null;
       this.closing=(async()=>{
         let payout=0,err=null;
-        try{const r=await rpc("arena_snake_fechar",{p_partida:pid,p_coletado:Math.round(this.p.col_*100)/100,p_seg:secs,p_abates:this.kills,p_valor_abates:Math.round(this.kv*100)/100,p_motivo:motivo});payout=Number(r&&r.payout||0)}catch(e){err=e.message}
+        try{const r=await rpc("arena_snake_fechar",{p_partida:pid,p_coletado:Math.round(this.p.col_*100)/100,p_seg:secs,p_abates:Math.max(this.kills,Math.ceil(this.kv/(this.stake*4+50))),p_valor_abates:Math.round(this.kv*100)/100,p_motivo:motivo});payout=Number(r&&r.payout||0)}catch(e){err=e.message}
         try{await Arena.loadWallet();Arena.renderWallet()}catch(e){}
         const h=$("sm-head");if(h)h.innerHTML=head(payout,err,false);
         try{this.redrawPick()}catch(e){}
